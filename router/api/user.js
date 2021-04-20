@@ -4,8 +4,12 @@ const router = new Router();
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
+const jwt = require('jsonwebtoken');
+const passport = require('koa-passport');
+
 const User = require('../../models/User');
 const code = require('../../config/stateCode');
+const keys = require('../../config/keys');
 
 router.post('/register', async (ctx) => {
   const { username, password } = ctx.request.body;
@@ -53,8 +57,6 @@ router.post('/login', async (ctx) => {
   const { username, password } = ctx.request.body;
   const user = await User.findOne({ username });
 
-  console.log(user);
-
   if (!user) {
     ctx.status = 404;
     ctx.body = {
@@ -67,11 +69,14 @@ router.post('/login', async (ctx) => {
 
     if (verifyPassword) {
       //return token
+      const payload = { id: user.id, username: user.username };
+      const token = jwt.sign(payload, keys.tokenKey, { expiresIn: '3600s' });
 
       ctx.status = 200;
       ctx.body = {
         code: code.SUCCESS,
         message: 'login successful',
+        token: 'Bearer ' + token,
         data: { user },
       };
     } else {
@@ -84,5 +89,17 @@ router.post('/login', async (ctx) => {
     }
   }
 });
+
+/**
+ *
+ */
+router.get(
+  '/current',
+  passport.authenticate('jwt', { session: false }),
+  async (ctx) => {
+    const { id, username } = ctx.state.user;
+    ctx.body = {id, username};
+  }
+);
 
 module.exports = router.routes();
