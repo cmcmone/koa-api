@@ -6,7 +6,8 @@ Content-Type: application/json
 
 {
   "username" : "Admin",
-  "password" : "123456"
+  "password" : "123456",
+  "password2" : "123456"
 }
 
 ### login post
@@ -14,7 +15,7 @@ POST {{HOST}}/api/user/login HTTP/1.1
 Content-Type: application/json
 
 {
-  "username" : "Admin",
+  "username" : "abc",
   "password" : "123456"
 }
 

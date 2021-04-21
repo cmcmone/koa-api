@@ -10,9 +10,22 @@ const passport = require('koa-passport');
 const User = require('../../models/User');
 const code = require('../../config/stateCode');
 const keys = require('../../config/keys');
+const validateRegisterInput = require('../../validation/register');
+const validateLoginInput = require('../../validation/login')
 
 router.post('/register', async (ctx) => {
   const { username, password } = ctx.request.body;
+
+  const { errors, isValid } = validateRegisterInput(ctx.request.body);
+
+  if (!isValid) {
+    ctx.status = 400;
+    ctx.body = {
+      code: code.ERROR,
+      message: errors,
+    };
+    return;
+  }
 
   const findOne = await User.findOne({
     username,
@@ -55,6 +68,18 @@ router.post('/register', async (ctx) => {
 
 router.post('/login', async (ctx) => {
   const { username, password } = ctx.request.body;
+
+  const { errors, isValid } = validateLoginInput(ctx.request.body);
+
+  if (!isValid) {
+    ctx.status = 400;
+    ctx.body = {
+      code: code.ERROR,
+      message: errors,
+    };
+    return;
+  }
+
   const user = await User.findOne({ username });
 
   if (!user) {
@@ -98,7 +123,7 @@ router.get(
   passport.authenticate('jwt', { session: false }),
   async (ctx) => {
     const { id, username } = ctx.state.user;
-    ctx.body = {id, username};
+    ctx.body = { id, username };
   }
 );
 
